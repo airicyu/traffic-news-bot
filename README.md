@@ -6,6 +6,13 @@
 
 另外，我們在顯示頁面也加入了Google map live traffic及運輸署全港主要道路交通情況的link讓你可以快速地看到現在的香港最新的路面交通情況。
 
+
+## 相關連結
+
+Chrome Store page: https://chrome.google.com/webstore/detail/收工交通消息/amnocbjeifmlcogkicidpemmfjeimhdf
+
+Github: https://github.com/airicyu/traffic-news-bot
+
 ## Sreenshot
 
 Popup頁面:
