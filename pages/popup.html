@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>收工交通消息設定</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" type="text/css" href="/lib/bootstrap/bootstrap.min.css" />
+    <script src="/lib/jquery/jquery-3.2.1.min.js"></script>
+    <script src="/lib/bootstrap/bootstrap.min.js"></script>
+    <script src="/pages/popup.js"></script>
+    <style>
+        html, body {
+            width: 800px;
+            max-height: 600px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="pull-left">
+                <h3>收工交通消息 (<a href="popup.html" target="_blank">Open in Tab</a>)</h3>
+            </div>
+            <div class="pull-right"><a href="options.html" target="_blank">選項</a></div>
+        </div>
+        
+        <hr />
+
+            <ul class="nav nav-tabs">
+                <li class="active">
+                    <a href="#traffic-news-tab" data-toggle="tab">交通消息</a>
+                </li>
+                <li><a href="https://www.google.com/maps/@22.3587918,114.1151666,11.5z/data=!5m1!1e1?hl=en" target="_blank">GoogleMap Live Traffic</a>
+                </li>
+                <li><a href="http://traffic.td.gov.hk/SwitchCenter.do?url=snapshots&language=hk" target="_blank">全港主要道路交通情況</a>
+                </li>
+            </ul>
+
+            <div class="tab-content clearfix">
+                <div class="tab-pane active" id="traffic-news-tab">
+                    <div id="news-items-wrapper">
+                    </div>
+                </div>
+            </div>
+
+        <hr />
+    </div>
+
+</html>
