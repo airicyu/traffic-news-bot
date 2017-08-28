@@ -118,19 +118,11 @@ chrome.notifications.onClicked.addListener(function (notificationId) {
 
 /* #################################################### */
 /* Handling schedule job events */
-chrome.alarms.onAlarm.addListener(async function (alarm) {
+chrome.alarms.onAlarm.addListener(function (alarm) {
     if (alarm.name === TRAFFIC_NEWS_BOT_DAILY_SCHEDULE_JOB_NAME) {
         debug(TRAFFIC_NEWS_BOT_DAILY_SCHEDULE_JOB_NAME);
-        chrome.alarms.create(TRAFFIC_NEWS_BOT_SCHEDULE_JOB_NAME, {
-            when: moment().valueOf(),
-            periodInMinutes: 5
-        });
+        dailyScheduleJob();
 
-        let {officeOffHour, officeOffMinute} = await getOfficeOffTime();
-        let nextOfficeOffTime = getNextOfficeOffTime(officeOffHour, officeOffMinute).valueOf();
-        chrome.alarms.create(TRAFFIC_NEWS_BOT_CLEAR_SCHEDULE_JOB_NAME, {
-            when: nextOfficeOffTime
-        });
     } else if (alarm.name === TRAFFIC_NEWS_BOT_CLEAR_SCHEDULE_JOB_NAME) {
         debug(TRAFFIC_NEWS_BOT_CLEAR_SCHEDULE_JOB_NAME);
         chrome.alarms.clear(TRAFFIC_NEWS_BOT_SCHEDULE_JOB_NAME);
@@ -140,6 +132,19 @@ chrome.alarms.onAlarm.addListener(async function (alarm) {
         checkTrafficNews();
     }
 });
+
+async function dailyScheduleJob(){
+    chrome.alarms.create(TRAFFIC_NEWS_BOT_SCHEDULE_JOB_NAME, {
+        when: moment().valueOf()+1000,
+        periodInMinutes: 5
+    });
+
+    let {officeOffHour, officeOffMinute} = await getOfficeOffTime();
+    let nextOfficeOffTime = getNextOfficeOffTime(officeOffHour, officeOffMinute).valueOf();
+    chrome.alarms.create(TRAFFIC_NEWS_BOT_CLEAR_SCHEDULE_JOB_NAME, {
+        when: nextOfficeOffTime
+    });
+}
 /* #################################################### */
 
 
@@ -169,15 +174,16 @@ async function updateScheduleJob(officeOffHour, officeOffMinute) {
 
                     let nextScheduleJobTriggerTime = getNextOfficeOffOneHourBeforeTime(officeOffHour, officeOffMinute);
 
-                    if (isNeedDoOneoffChecking(officeOffHour, officeOffMinute)) {
-                        nextScheduleJobTriggerTime = moment().hours(officeOffHour).minutes(officeOffMinute).subtract(1, 'hour');
-                    }
                     let delayMs = Math.round(30 + Math.random() * 60) * 1000;
 
                     chrome.alarms.create(TRAFFIC_NEWS_BOT_DAILY_SCHEDULE_JOB_NAME, {
                         when: nextScheduleJobTriggerTime.valueOf() + delayMs,
                         periodInMinutes: 24 * 60
                     });
+
+                    if (isNeedDoOneoffChecking(officeOffHour, officeOffMinute)) {
+                        dailyScheduleJob();
+                    }
 
                     resolve();
                 });
@@ -224,12 +230,8 @@ function getNextOfficeOffOneHourBeforeTime(officeOffHour, officeOffMinute) {
     let now = moment();
     let nextTime = moment().hours(officeOffHour).minutes(officeOffMinute).subtract(1, 'hour');
 
-    if (now.valueOf() > nextTime.valueOf()) {
-        nextTime.add(1, 'day');
-    }
-
     while (true) {
-        if (!isDateValidOfficeDay(nextTime)) {
+        if (now.valueOf() > nextTime.valueOf() || !isDateValidOfficeDay(nextTime)) {
             nextTime.add(1, 'day');
             continue;
         } else {

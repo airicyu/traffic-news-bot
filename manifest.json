@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "收工交通消息",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "收工時間交通消息推送",
   "icons": {
     "128": "icon/icon128.png",
@@ -24,5 +24,11 @@
     "notifications",
     "alarms",
     "http://resource.data.one.gov.hk/td/en/specialtrafficnews.xml"
-  ]
+  ],
+  "applications": {
+    "gecko": {
+      "id": "traffic-news-bot@airic-yu.com",
+      "strict_min_version": "42.0"
+    }
+  }
 }
