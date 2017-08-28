@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "收工交通消息",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "收工時間交通消息推送",
   "icons": {
     "128": "icon/icon128.png",
@@ -15,10 +15,11 @@
   },
   "options_page" : "pages/options.html",
   "background": {
-    "scripts": ["lib/jquery/jquery-3.2.1.min.js", "lib/x2js/xml2json.js", "lib/moment/moment.js","pages/eventPage.js"],
+    "scripts": ["lib/jquery/jquery-3.2.1.min.js", "lib/x2js/xml2json.js", "lib/moment/moment.js", "pages/dataMapping.js", "pages/tagsExtractor.js","pages/eventPage.js"],
     "persistent": true
   },
   "permissions": [
+    "background",
     "storage",
     "notifications",
     "alarms",

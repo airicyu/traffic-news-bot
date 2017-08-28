@@ -4,22 +4,37 @@ $(function () {
         let trafficNewsItems = response.items;
         let listWrapper = $('<ul>');
         $.each(trafficNewsItems, function(i, item){
-            let itemElem = $('<li>').html(`<strong>${item.referenceDate}</strong> - <small>訊息 ${item.id}:</small><br /><p>${item.message}</p>`).css('margin-bottom', '10px');
+            
+            let filteredTagsText = item['tagInfo']['filteredTags'].map(tag=>'<span class="badge">'+tag.ch+'</span>').join(' ');
+            
+            let itemElem = $('<li>').html(`<item class="traffic-news-item"><strong>${item.referenceDate}</strong> - <small>訊息 ${item.id}:</small><br />`+
+            `<label>Tags:</label><span style="margin-left:0.5em">${filteredTagsText}</span><br />`+
+            `<span class="traffic-news-item-message">${item.message}</span></item>`).css('margin-bottom', '1em');
+
+            /* get Chinese keywords, reverse by length, and then matching the message */
+            let _tagKeywords = [];
+            chiKeywords.forEach(function(keyword){
+                if (item.message.includes(keyword)){
+                    _tagKeywords.push(keyword);
+                }
+            });
+            _tagKeywords.sort(function(a, b){
+                return a.length - b.length;
+            });
+            let tempBuffer = '';
+            let tagKeywords = [];
+            _tagKeywords.forEach(function(keyword){
+                if (!tempBuffer.includes(keyword)){
+                    tempBuffer+=keyword+';';
+                    tagKeywords.push(keyword);
+                }
+            });
+            
+            itemElem.find('span.traffic-news-item-message').mark(tagKeywords);
+
             listWrapper.append(itemElem);
         });
         $('#news-items-wrapper').append(listWrapper);
     });
     
-    function initializeGoogleLiveTrafficMap() {
-        var myLatlng = new google.maps.LatLng(22.3700198,114.2376049);
-        var mapOptions = {
-          zoom: 11,
-          center: myLatlng
-        }
-      
-        var map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
-      
-        var trafficLayer = new google.maps.TrafficLayer();
-        trafficLayer.setMap(map);
-      }
 });

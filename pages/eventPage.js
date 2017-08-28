@@ -7,7 +7,14 @@ const TRAFFIC_NEWS_BOT_CLEAR_SCHEDULE_JOB_NAME = 'trafficNewsBot-clear-schedule-
 const DEFAULT_OFFICE_OFF_HOUR = 18;
 const DEFAULT_OFFICE_OFF_MINUTE = 0;
 
-var debug = console.log;
+var debug = function(){
+    let args = arguments;
+    chrome.storage.sync.get('debugMode', function (store) {
+        if (store.debugMode){
+            console.log.apply(console, args);
+        }
+    });
+};
 
 init();
 
@@ -50,7 +57,13 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
         });
     } else if (message.type == 'trafficNewsBot.debugSettings') {
         chrome.storage.sync.get(null, function (store) {
-            sendResponse({ store: store });
+            chrome.alarms.getAll(function(alarms){
+                let ourAlarms = JSON.parse(JSON.stringify(alarms.filter(alarm=>[TRAFFIC_NEWS_BOT_DAILY_SCHEDULE_JOB_NAME,TRAFFIC_NEWS_BOT_CLEAR_SCHEDULE_JOB_NAME,TRAFFIC_NEWS_BOT_SCHEDULE_JOB_NAME].includes(alarm.name))));
+                ourAlarms.forEach(function(alarm) {
+                    alarm.scheduleTimeDateString = new Date(alarm.scheduledTime).toLocaleString();
+                });
+                sendResponse({ store: store, alarms: ourAlarms });
+            })
         });
         return true;
     }
@@ -66,12 +79,15 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
             } catch (e) {
                 debug(e);
             }
+            messages.forEach(tagMessage);
+
             let notificationItems = messages.map((msg) => {
                 return {
                     id: msg['msgID'],
                     status: msg['CurrentStatus'],
                     referenceDate: msg['ReferenceDate'],
-                    message: msg['ChinShort']
+                    message: msg['ChinText'],
+                    tagInfo: msg['tagInfo']
                 };
             });
             sendResponse({ items: notificationItems });
@@ -240,18 +256,26 @@ async function checkTrafficNews() {
             debug(e);
         }
         let filteredMessages = await filterTrafficNewsMessages(rawMessages);
+        filteredMessages.forEach(tagMessage);
+
         let notificationItems = filteredMessages.map((msg) => {
             return {
-                title: '',
-                message: msg['ChinShort']
+                title: msg['tagInfo']['filteredTags'].map(tag=>tag.ch).join(', '),
+                message: msg['ChinText']
             };
         });
+
+        debug(notificationItems);
         if (notificationItems && notificationItems.length) {
             await sendTrafficNewsNotification(notificationItems);
         }
         
         resolve({filteredMessages, notificationItems});
     });
+}
+
+function tagMessage(message){
+    message['tagInfo'] = mappingTagInfo(extractTags(message['EngText']));
 }
 
 /* util method for clear outdate message hash (we would not keep new hash cache which is older than today) */
@@ -301,8 +325,8 @@ async function getTrafficNewsMessages() {
                     jsonResponse.body.message = [jsonResponse.body.message];
                 }
                 jsonResponse.body.message = jsonResponse.body.message.map(function (message) {
-                    if (message.ChinShort.includes('********************')) {
-                        message.ChinShort = message.ChinShort.substr(0, message.ChinShort.indexOf('********************')).trim();
+                    if (message.ChinText.includes('********************')) {
+                        message.ChinText = message.ChinText.substr(0, message.ChinText.indexOf('********************')).trim();
                     }
                     return message;
                 });
