@@ -6,7 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>收工交通消息設定</title>
     <link rel="stylesheet" type="text/css" href="/lib/bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="/lib/bootstrap-switch/bootstrap-switch.min.css" />
+    <link rel="stylesheet" type="text/css" href="/pages/style.css" />
     <script src="/lib/jquery/jquery-3.2.1.min.js"></script>
+    <script src="/lib/bootstrap-switch/bootstrap-switch.min.js"></script>
     <script src="/pages/options.js"></script>
     <style>
         body {
@@ -21,11 +24,21 @@
         <h3>收工交通消息設定</h3>
         <hr />
         <div class="row">
-            <div class="col-md-12">
+            <div class="col-sm-12">
                 <form class="form">
+                    <div class="row">
+                        <div class="col-sm-2">
+                            <input type="checkbox" id="enable-notification" data-on-color="success" />
+                        </div>
+                        <div class="col-sm-3">
+                            <h6>交通消息Notification</h6>
+                        </div>
+                    </div>
+                    <hr />
                     <div class="form-group">
-                        <label>(星期一至五)收工時間: </label>
-                        <select id="officeOffHour">
+                        <div class="form-group">
+                            <label>(星期一至五)收工時間: </label>
+                            <select id="officeOffHour">
                             <option value="0">00</option>
                             <option value="1">01</option>
                             <option value="2">02</option>
@@ -51,34 +64,145 @@
                             <option value="22">22</option>
                             <option value="23">23</option>
                         </select>
-                        <span> : </span>
-                        <select id="officeOffMinute">
+                            <span> : </span>
+                            <select id="officeOffMinute">
                             <option value="0">00</option>
                             <option value="15">15</option>
                             <option value="30">30</option>
                             <option value="45">45</option>
                         </select>
+                        </div>
                     </div>
-                    <input type="button" id="saveSettings" value="確定" class="btn btn-default" />
-                </form>
 
+                    <div class="form-group">
+                        <h4>推送消息過濾(white list):</h4>
+                        <div class="panel panel-default option-filter-tag-panel">
+                            <div class="panel-body">
+                                <div>
+                                    <div class="row">
+                                        <div class="col-sm-2">
+                                            <input type="checkbox" id="filter-tag-show_all" data-on-color="success" />
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <h6>包括所有消息</h6>
+                                        </div>
+                                    </div>
+                                    <div class="row"><hr /></div>
+                                    
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <button type="button" id="filter-tag-hong_kong_island" class="btn btn-default filter-tag" data-tag="hong kong island" data-toggle-state="0">香港島</button>
+                                            <button type="button" id="filter-tag-kowloon" class="btn btn-default filter-tag" data-tag="kowloon" data-toggle-state="0">九龍</button>
+                                            <button type="button" id="filter-tag-new_territories" class="btn btn-default filter-tag" data-tag="new territories" data-toggle-state="0">新界</button>
+                                        </div>
+                                    </div>
+                                    <br />
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <button type="button" id="filter-tag-tolo_highway" class="btn btn-default filter-tag" data-tag="tolo highway" data-toggle-state="0">吐露港公路</button>
+                                            <button type="button" id="filter-tag-tuen_mun_road" class="btn btn-default filter-tag" data-tag="tuen mun road" data-toggle-state="0">屯門公路</button>
+                                            <button type="button" id="filter-tag-aberdeen_tunnel" class="btn btn-default filter-tag" data-tag="aberdeen tunnel" data-toggle-state="0">香港仔隧道</button>
+                                            <button type="button" id="filter-tag-island_eastern_corridor" class="btn btn-default filter-tag" data-tag="island eastern corridor" data-toggle-state="0">東區走廊</button>
+                                            <button type="button" id="filter-tag-kwun_tong_road" class="btn btn-default filter-tag" data-tag="kwun tong road" data-toggle-state="0">觀塘道</button>
+                                            <button type="button" id="filter-tag-lai_chi_kok_road" class="btn btn-default filter-tag" data-tag="lai chi kok road" data-toggle-state="0">荔枝角道</button>
+                                            <button type="button" id="filter-tag-princess_margaret_road" class="btn btn-default filter-tag" data-tag="princess margaret road" data-toggle-state="0">公主道</button>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <button type="button" id="filter-tag-shing_mun_tunnel" class="btn btn-default filter-tag" data-tag="shing mun tunnel" data-toggle-state="0">城門隧道</button>
+                                            <button type="button" id="filter-tag-lion_rock_tunnel" class="btn btn-default filter-tag" data-tag="lion rock tunnel" data-toggle-state="0">獅子山隧道</button>
+                                            <button type="button" id="filter-tag-tates_cairn_tunnel" class="btn btn-default filter-tag" data-tag="tate's cairn tunnel" data-toggle-state="0">大老山隧道</button>
+                                            <button type="button" id="filter-tag-tai_lam_tunnel" class="btn btn-default filter-tag" data-tag="tai lam tunnel" data-toggle-state="0">大欖隧道</button>
+                                            <button type="button" id="filter-tag-fanling_highway" class="btn btn-default filter-tag" data-tag="fanling highway" data-toggle-state="0">粉嶺公路</button>
+
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <button type="button" id="filter-tag-cross_harbour_tunnel" class="btn btn-default filter-tag" data-tag="cross harbour tunnel" data-toggle-state="0">海底隧道</button>
+                                            <button type="button" id="filter-tag-eastern_harbour_tunnel" class="btn btn-default filter-tag" data-tag="eastern harbour tunnel" data-toggle-state="0">東區海底隧道</button>
+                                            <button type="button" id="filter-tag-western_harbour_crossing" class="btn btn-default filter-tag" data-tag="western harbour crossing" data-toggle-state="0">西區海底隧道</button>
+                                        </div>
+                                    </div>
+                                    <br />
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <button type="button" id="filter-tag-mtr" class="btn btn-default filter-tag" data-tag="mtr" data-toggle-state="0">港鐵</button>
+                                            <button type="button" id="filter-tag-island_line" class="btn btn-default filter-tag" data-tag="island line" data-toggle-state="0">港島綫</button>
+                                            <button type="button" id="filter-tag-kwun_tong_line" class="btn btn-default filter-tag" data-tag="kwun tong line" data-toggle-state="0">觀塘綫</button>
+                                            <button type="button" id="filter-tag-tsuen_wan_line" class="btn btn-default filter-tag" data-tag="tsuen wan line" data-toggle-state="0">荃灣綫</button>
+                                            <button type="button" id="filter-tag-tseung_kwan_o_line" class="btn btn-default filter-tag" data-tag="tseung kwan o line" data-toggle-state="0">將軍澳綫</button>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <button type="button" id="filter-tag-east_rail_line" class="btn btn-default filter-tag" data-tag="east rail line" data-toggle-state="0">東鐵綫</button>
+                                            <button type="button" id="filter-tag-west_rail_line" class="btn btn-default filter-tag" data-tag="west rail line" data-toggle-state="0">西鐵綫</button>
+                                            <button type="button" id="filter-tag-tung_chung_line" class="btn btn-default filter-tag" data-tag="tung chung line" data-toggle-state="0">東涌綫</button>
+                                            <button type="button" id="filter-tag-south_island_line" class="btn btn-default filter-tag" data-tag="south island line" data-toggle-state="0">南港島綫</button>
+                                            <button type="button" id="filter-tag-ma_on_shan_line" class="btn btn-default filter-tag" data-tag="ma on shan line" data-toggle-state="0">馬鞍山綫</button>
+                                        </div>
+                                    </div>
+                                    <br />
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <button type="button" id="filter-tag-central_and_western" class="btn btn-default filter-tag" data-tag="central and western" data-toggle-state="0">中西區</button>
+                                            <button type="button" id="filter-tag-wan_chai" class="btn btn-default filter-tag" data-tag="wan chai" data-toggle-state="0">灣仔區</button>
+                                            <button type="button" id="filter-tag-eastern" class="btn btn-default filter-tag" data-tag="eastern" data-toggle-state="0">東區</button>
+                                            <button type="button" id="filter-tag-southern" class="btn btn-default filter-tag" data-tag="southern" data-toggle-state="0">南區</button>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <button type="button" id="filter-tag-yau_tsim_mong" class="btn btn-default filter-tag" data-tag="yau tsim mong" data-toggle-state="0">油尖旺區</button>
+                                            <button type="button" id="filter-tag-sham_shui_po" class="btn btn-default filter-tag" data-tag="sham shui po" data-toggle-state="0">深水埗區</button>
+                                            <button type="button" id="filter-tag-kowloon_city" class="btn btn-default filter-tag" data-tag="kowloon city" data-toggle-state="0">九龍城區</button>
+                                            <button type="button" id="filter-tag-wong_tai_sin" class="btn btn-default filter-tag" data-tag="wong tai sin" data-toggle-state="0">黃大仙區</button>
+                                            <button type="button" id="filter-tag-kwun_tong" class="btn btn-default filter-tag" data-tag="kwun tong" data-toggle-state="0">觀塘區</button>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <button type="button" id="filter-tag-kwai_tsing" class="btn btn-default filter-tag" data-tag="kwai tsing" data-toggle-state="0">葵青區</button>
+                                            <button type="button" id="filter-tag-tsuen_wan" class="btn btn-default filter-tag" data-tag="tsuen wan" data-toggle-state="0">荃灣區</button>
+                                            <button type="button" id="filter-tag-tuen_mun" class="btn btn-default filter-tag" data-tag="tuen mun" data-toggle-state="0">屯門區</button>
+                                            <button type="button" id="filter-tag-yuen_long" class="btn btn-default filter-tag" data-tag="yuen long" data-toggle-state="0">元朗區</button>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <button type="button" id="filter-tag-north" class="btn btn-default filter-tag" data-tag="north" data-toggle-state="0">北區</button>
+                                            <button type="button" id="filter-tag-tai_po" class="btn btn-default filter-tag" data-tag="tai po" data-toggle-state="0">大埔區</button>
+                                            <button type="button" id="filter-tag-sha_tin" class="btn btn-default filter-tag" data-tag="sha tin" data-toggle-state="0">沙田區</button>
+                                            <button type="button" id="filter-tag-sai_kung" class="btn btn-default filter-tag" data-tag="sai kung" data-toggle-state="0">西貢區</button>
+                                            <button type="button" id="filter-tag-islands" class="btn btn-default filter-tag" data-tag="islands" data-toggle-state="0">離島區</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!--<input type="button" id="saveSettings" value="確定" class="btn btn-default" />-->
+                </form>
+                </div>
             </div>
+
+            <hr />
+            <div class="row">
+                <div class="col-sm-12">
+                    <button type="button" id="clearTrafficNewsCache" class="btn btn-warning">重置交通消息缓存資料</button>
+                </div>
+            </div>
+            <hr />
+            <div class="row debug-control-ui" style="display:none">
+                <div class="col-sm-2">
+                    <button type="button" id="debugSettings" class="btn btn-default">Debug settings</button>
+                </div>
+                <div class="col-sm-2">
+                    <div><input id="debugMode" type="checkbox" />Debug Mode</div>
+                </div>
+            </div>
+
         </div>
-        <hr />
-        <div class="row">
-            <div class="col-md-12">
-                <button type="button" id="clearTrafficNewsCache" class="btn btn-default">重置交通消息缓存資料</button>
-            </div>
-        </div>
-        <hr />
-        <div class="row debug-control-ui" style="display:none">
-            <div class="col-md-2">
-                <button type="button" id="debugSettings" class="btn btn-default">Debug settings</button>
-            </div>
-            <div class="col-md-2">
-                <div><input id="debugMode" type="checkbox" />Debug Mode</div>
-            </div>
-        </div>
-    </div>
 
 </html>

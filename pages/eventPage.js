@@ -7,10 +7,10 @@ const TRAFFIC_NEWS_BOT_CLEAR_SCHEDULE_JOB_NAME = 'trafficNewsBot-clear-schedule-
 const DEFAULT_OFFICE_OFF_HOUR = 18;
 const DEFAULT_OFFICE_OFF_MINUTE = 0;
 
-var debug = function(){
+var debug = function () {
     let args = arguments;
     chrome.storage.sync.get('debugMode', function (store) {
-        if (store.debugMode){
+        if (store.debugMode) {
             console.log.apply(console, args);
         }
     });
@@ -24,10 +24,23 @@ init();
 /* Default running logic */
 
 /* setting default office hour setting value */
-async function init(){
+async function init() {
     debug('traffic news bot init extension');
-    return getOfficeOffTime().then(function({officeOffHour, officeOffMinute}){   
-        chrome.storage.sync.set({ 'officeOffHour': officeOffHour, 'officeOffMinute': officeOffMinute }, function () {
+    chrome.storage.sync.get(['enableNotification', 'officeOffHour', 'officeOffMinute', 'filterTagsShowAll', 'filterTags', 'debugMode'], function (store) {
+        let enableNotification = store.enableNotification !== undefined ? store.enableNotification : true;
+        let filterTagsShowAll = store.filterTagsShowAll !== undefined ? store.filterTagsShowAll : true;
+        let officeOffHour = store.officeOffHour !== undefined ? store.officeOffHour : DEFAULT_OFFICE_OFF_HOUR;
+        let officeOffMinute = store.officeOffMinute !== undefined ? store.officeOffMinute : DEFAULT_OFFICE_OFF_MINUTE;
+        let filterTags = store.filterTags !== undefined ? store.filterTags : [];
+        let debugMode = store.debugMode !== undefined ? store.debugMode : false;
+
+        chrome.storage.sync.set({
+            'enableNotification': enableNotification,
+            'filterTagsShowAll': filterTagsShowAll,
+            'officeOffHour': officeOffHour,
+            'officeOffMinute': officeOffMinute,
+            'filterTags': filterTags
+        }, function () {
             updateScheduleJob(officeOffHour, officeOffMinute);
         });
     });
@@ -44,22 +57,31 @@ async function init(){
 /* Handling option page events*/
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     if (message.type == 'trafficNewsBot.saveSettings') {
+        let enableNotification = message.data.enableNotification !== undefined ? message.data.enableNotification : true;
+        let filterTagsShowAll = message.data.filterTagsShowAll !== undefined ? message.data.filterTagsShowAll : true;
+        let filterTags = message.data.filterTags !== undefined ? message.data.filterTags : [];
         let officeOffHour = message.data.officeOffHour;
         let officeOffMinute = message.data.officeOffMinute;
-        chrome.storage.sync.set({ 'officeOffHour': officeOffHour, 'officeOffMinute': officeOffMinute }, function () {
+        chrome.storage.sync.set({
+            enableNotification,
+            officeOffHour,
+            officeOffMinute,
+            filterTagsShowAll,
+            filterTags
+        }, function () {
             updateScheduleJob(officeOffHour, officeOffMinute);
         });
     } else if (message.type == 'trafficNewsBot.clearTrafficNewsCache') {
         clearAllMessagesHash().then(function () {
-            getOfficeOffTime().then(function({officeOffHour, officeOffMinute}){   
+            getOfficeOffTime().then(function ({ officeOffHour, officeOffMinute }) {
                 updateScheduleJob(officeOffHour, officeOffMinute);
             });
         });
     } else if (message.type == 'trafficNewsBot.debugSettings') {
         chrome.storage.sync.get(null, function (store) {
-            chrome.alarms.getAll(function(alarms){
-                let ourAlarms = JSON.parse(JSON.stringify(alarms.filter(alarm=>[TRAFFIC_NEWS_BOT_DAILY_SCHEDULE_JOB_NAME,TRAFFIC_NEWS_BOT_CLEAR_SCHEDULE_JOB_NAME,TRAFFIC_NEWS_BOT_SCHEDULE_JOB_NAME].includes(alarm.name))));
-                ourAlarms.forEach(function(alarm) {
+            chrome.alarms.getAll(function (alarms) {
+                let ourAlarms = JSON.parse(JSON.stringify(alarms.filter(alarm => [TRAFFIC_NEWS_BOT_DAILY_SCHEDULE_JOB_NAME, TRAFFIC_NEWS_BOT_CLEAR_SCHEDULE_JOB_NAME, TRAFFIC_NEWS_BOT_SCHEDULE_JOB_NAME].includes(alarm.name))));
+                ourAlarms.forEach(function (alarm) {
                     alarm.scheduleTimeDateString = new Date(alarm.scheduledTime).toLocaleString();
                 });
                 sendResponse({ store: store, alarms: ourAlarms });
@@ -79,7 +101,25 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
             } catch (e) {
                 debug(e);
             }
+
             messages.forEach(tagMessage);
+
+            await new Promise((resolve) => {
+                chrome.storage.sync.get(['filterTagsShowAll', 'filterTags'], function (setting) {
+                    if (!setting.filterTagsShowAll) {
+                        messages = messages.filter(function (msg) {
+                            let msgTags = msg['tagInfo']['filteredTags'].map(tag => tag.en);
+                            for (let filterTag of setting.filterTags) {
+                                if (msgTags.includes(filterTag)) {
+                                    return true;
+                                }
+                            }
+                            return false;
+                        })
+                    }
+                    resolve();
+                });
+            });
 
             let notificationItems = messages.map((msg) => {
                 return {
@@ -129,17 +169,21 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
 
     } else if (alarm.name === TRAFFIC_NEWS_BOT_SCHEDULE_JOB_NAME) {
         debug(TRAFFIC_NEWS_BOT_SCHEDULE_JOB_NAME);
-        checkTrafficNews();
+        chrome.storage.sync.get('enableNotification', function (setting) {
+            if (setting.enableNotification) {
+                checkTrafficNews();
+            }
+        });
     }
 });
 
-async function dailyScheduleJob(){
+async function dailyScheduleJob() {
     chrome.alarms.create(TRAFFIC_NEWS_BOT_SCHEDULE_JOB_NAME, {
-        when: moment().valueOf()+1000,
+        when: moment().valueOf() + 1000,
         periodInMinutes: 5
     });
 
-    let {officeOffHour, officeOffMinute} = await getOfficeOffTime();
+    let { officeOffHour, officeOffMinute } = await getOfficeOffTime();
     let nextOfficeOffTime = getNextOfficeOffTime(officeOffHour, officeOffMinute).valueOf();
     chrome.alarms.create(TRAFFIC_NEWS_BOT_CLEAR_SCHEDULE_JOB_NAME, {
         when: nextOfficeOffTime
@@ -160,7 +204,7 @@ async function getOfficeOffTime() {
         chrome.storage.sync.get(['officeOffHour', 'officeOffMinute'], function (store) {
             let officeOffHour = store.officeOffHour !== undefined ? store.officeOffHour : DEFAULT_OFFICE_OFF_HOUR;
             let officeOffMinute = store.officeOffMinute !== undefined ? store.officeOffMinute : DEFAULT_OFFICE_OFF_MINUTE;
-            resolve({officeOffHour, officeOffMinute});
+            resolve({ officeOffHour, officeOffMinute });
         });
     });
 }
@@ -249,7 +293,7 @@ function isDateValidOfficeDay(checkDate) {
 
 /* util method for business operation of checking traffice news. It may send notification if there are updated items. */
 async function checkTrafficNews() {
-    return new Promise(async function(resolve, reject) {
+    return new Promise(async function (resolve, reject) {
         await clearOutdatedMessagesHash();
         let rawMessages = [];
         try {
@@ -260,9 +304,26 @@ async function checkTrafficNews() {
         let filteredMessages = await filterTrafficNewsMessages(rawMessages);
         filteredMessages.forEach(tagMessage);
 
+        await new Promise((resolve) => {
+            chrome.storage.sync.get(['filterTagsShowAll', 'filterTags'], function (setting) {
+                if (!setting.filterTagsShowAll) {
+                    filteredMessages = filteredMessages.filter(function (msg) {
+                        let msgTags = msg['tagInfo']['filteredTags'].map(tag => tag.en);
+                        for (let filterTag of setting.filterTags) {
+                            if (msgTags.includes(filterTag)) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    })
+                }
+                resolve();
+            });
+        });
+
         let notificationItems = filteredMessages.map((msg) => {
             return {
-                title: msg['tagInfo']['filteredTags'].map(tag=>tag.ch).join(', '),
+                title: msg['tagInfo']['filteredTags'].map(tag => tag.ch).join(', '),
                 message: msg['ChinText']
             };
         });
@@ -271,12 +332,12 @@ async function checkTrafficNews() {
         if (notificationItems && notificationItems.length) {
             await sendTrafficNewsNotification(notificationItems);
         }
-        
-        resolve({filteredMessages, notificationItems});
+
+        resolve({ filteredMessages, notificationItems });
     });
 }
 
-function tagMessage(message){
+function tagMessage(message) {
     message['tagInfo'] = mappingTagInfo(extractTags(message['EngText']));
 }
 

@@ -66,11 +66,13 @@ function mappingTagInfo(tags){
         }
     });
     _tags.sort(function(a, b){
-        return finalKeywordFilter[a.en] - finalKeywordFilter[b.en];
+        let aKey = finalKeywordFilter[a.en] || 999999;
+        let bKey = finalKeywordFilter[b.en] || 999999;
+        return aKey - bKey;
     });
     
     result.fullTags = _tags;
-    result.filteredTags = _tags.filter(tag=>finalKeywordFilter[tag.en]);
+    result.filteredTags = _tags.filter(tag=>finalKeywordFilter[tag.en]!==undefined);
 
     return result;
 }
