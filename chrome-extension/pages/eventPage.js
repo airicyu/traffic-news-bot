@@ -95,17 +95,9 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     if (message.type == 'trafficNewsBot.queryTrafficNews') {
         (async function () {
-            let messages = [];
-            try {
-                messages = await getTrafficNewsMessages();
-            } catch (e) {
-                debug(e);
-            }
 
-            messages.forEach(tagMessage);
-
-            await new Promise((resolve) => {
-                chrome.storage.sync.get(['filterTagsShowAll', 'filterTags'], function (setting) {
+            let {filterTagsShowAll, filterTags, debugMode} = await new Promise((resolve) => {
+                chrome.storage.sync.get(['filterTagsShowAll', 'filterTags', 'debugMode'], function (setting) {
                     if (!setting.filterTagsShowAll) {
                         messages = messages.filter(function (msg) {
                             let msgTags = msg['tagInfo']['filteredTags'].map(tag => tag.en);
@@ -117,9 +109,30 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
                             return false;
                         })
                     }
-                    resolve();
+                    resolve(setting);
                 });
             });
+
+            let messages = [];
+            try {
+                messages = await getTrafficNewsMessages();
+            } catch (e) {
+                debug(e);
+            }
+
+            messages.forEach(tagMessage);
+
+            if (!filterTagsShowAll) {
+                messages = messages.filter(function (msg) {
+                    let msgTags = msg['tagInfo']['filteredTags'].map(tag => tag.en);
+                    for (let filterTag of filterTags) {
+                        if (msgTags.includes(filterTag)) {
+                            return true;
+                        }
+                    }
+                    return false;
+                })
+            }
 
             let notificationItems = messages.map((msg) => {
                 return {
@@ -389,7 +402,7 @@ async function getTrafficNewsMessages() {
                 }
                 jsonResponse.body.message = jsonResponse.body.message.map(function (message) {
                     if (message.ChinText.includes('********************')) {
-                        message.ChinText = message.ChinText.substr(0, message.ChinText.indexOf('********************')).trim();
+                        message.ChinText = message.ChinText.substr(0, message.ChinText.indexOf('********************')).replace(/(　|–)+/g,'').trim();
                     }
                     return message;
                 });

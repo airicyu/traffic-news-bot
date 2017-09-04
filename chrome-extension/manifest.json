@@ -1,0 +1,28 @@
+{
+    "manifest_version": 2,
+    "name": "收工交通消息",
+    "version": "4.0.0",
+    "description": "收工時間交通消息推送",
+    "icons": {
+        "128": "icon/icon128.png",
+        "48": "icon/icon48.png",
+        "16": "icon/icon16.png"
+    },
+    "browser_action": {
+        "default_icon": "icon/icon128.png",
+        "default_popup": "pages/popup.html",
+        "default_title": "最新交通消息"
+    },
+    "options_page": "pages/options.html",
+    "background": {
+        "scripts": ["lib/jquery/jquery-3.2.1.min.js", "lib/x2js/xml2json.js", "lib/moment/moment.js", "pages/dataMapping.js", "pages/dataMappingExtended.js", "pages/tagsExtractor.js", "pages/eventPage.js"],
+        "persistent": true
+    },
+    "permissions": [
+        "background",
+        "storage",
+        "notifications",
+        "alarms",
+        "http://resource.data.one.gov.hk/td/en/specialtrafficnews.xml"
+    ]
+}

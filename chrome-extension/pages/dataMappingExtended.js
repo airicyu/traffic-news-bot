@@ -1,3 +1,14 @@
+try {
+    var {
+        roadToDistrictMapping,
+        districtToDistrict18Mapping,
+        district18ToRegionMapping,
+        dictionary,
+        chiKeywords
+    } = require('./dataMapping');
+} catch (e) {}
+
+
 var { otherKeywordTagMapping, finalKeywordFilter } =
 (function () {
 
@@ -12,7 +23,10 @@ var { otherKeywordTagMapping, finalKeywordFilter } =
         "tseung kwan o line": ["mtr", "tseung kwan o line"],
         "tung chung line": ["mtr", "tung chung line"],
         "south island line": ["mtr", "south island line"],
-        "ma on shan line": ["mtr", "ma on shan line"]
+        "ma on shan line": ["mtr", "ma on shan line"],
+        "hong kong island": ["hong kong island"],
+        "kowloon": ["kowloon"],
+        "new territories": ["new territories"]
     }
 
     let _filterKeywords = [
@@ -77,7 +91,7 @@ var { otherKeywordTagMapping, finalKeywordFilter } =
     ];
     var _finalKeywordFilter = {};
     _filterKeywords.forEach(function (keyword, i) {
-        _finalKeywordFilter[keyword] = i+1;
+        _finalKeywordFilter[keyword] = i + 1;
     });
 
     return {
@@ -86,7 +100,9 @@ var { otherKeywordTagMapping, finalKeywordFilter } =
     }
 })();
 
-/*module.exports = {
-    otherKeywordTagMapping, //Map<Eng Keyword, Array<Tags>>
-    finalKeywordFilter, //Map<Eng Keyword, Weight Index>
-}*/
+try {
+    module.exports = {
+        otherKeywordTagMapping,
+        finalKeywordFilter
+    }
+} catch (e) {}

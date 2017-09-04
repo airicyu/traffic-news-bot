@@ -8292,6 +8292,9 @@ var { roadToDistrictMapping, districtToDistrict18Mapping, district18ToRegionMapp
     for (let key in _dictionary) {
         _chiKeywords.push(_dictionary[key]);
     }
+    _chiKeywords.push.apply(_chiKeywords, ["灣仔", "深水埗", "九龍城", "黃大仙", "觀塘",
+        "葵青", "荃灣", "屯門", "元朗", "大埔", "沙田", "西貢", "離島"
+    ]);
     _chiKeywords.sort(function (a, b) {
         return b.length - a.length;
     });
@@ -8305,10 +8308,8 @@ var { roadToDistrictMapping, districtToDistrict18Mapping, district18ToRegionMapp
     }
 })();
 
-/*module.exports = {
-    roadToDistrictMapping, //Map<Road, Array<District>>
-    districtToDistrict18Mapping, //Map<District, District18>
-    district18ToRegionMapping, //Map<District18, Region>
-    dictionary, //Map<Eng Keyword, Chinese>
-    chiKeywords //Array<Chinese keywords>
-}*/
+try {
+    module.exports = {
+        roadToDistrictMapping, districtToDistrict18Mapping, district18ToRegionMapping, dictionary, chiKeywords
+    }
+} catch (e) {}

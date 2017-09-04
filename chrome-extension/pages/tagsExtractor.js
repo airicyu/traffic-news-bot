@@ -1,3 +1,17 @@
+try {
+    var {
+        roadToDistrictMapping,
+        districtToDistrict18Mapping,
+        district18ToRegionMapping,
+        dictionary,
+        chiKeywords
+    } = require('./dataMapping');
+    var {
+        otherKeywordTagMapping,
+        finalKeywordFilter
+    } = require('./dataMappingExtended');
+} catch (e) {}
+
 function extractTags(input) {
     let tags = [];
     let currentStr = input && input.toLowerCase().replace(/\s+/g, " ").replace(/&apos;/g, "'");
@@ -76,3 +90,29 @@ function mappingTagInfo(tags){
 
     return result;
 }
+
+function highlightChiContentsMessage(message){
+    /* get Chinese keywords(already sorted by length desc), and then matching the message */
+    let _tagKeywords = [];
+    chiKeywords.forEach(function(keyword){
+        if (message.includes(keyword)){
+            _tagKeywords.push(keyword);
+        }
+    });
+    
+    let itemMessageHtml = message;
+    _tagKeywords.forEach(function(keyword, i){
+        itemMessageHtml = itemMessageHtml.replace(new RegExp(keyword, 'g'), `<#$%>${i}<#$%/>`);
+    });
+    _tagKeywords.forEach(function(keyword, i){
+        itemMessageHtml = itemMessageHtml.replace(new RegExp(`<#\\$%>${i}<#\\$%/>`, 'g'), `<#$%>${keyword}<#$%/>`);
+    });
+
+    return itemMessageHtml;
+}
+
+try {
+    module.exports = {
+        extractTags, mappingTagInfo, highlightChiContentsMessage
+    }
+} catch (e) {}
