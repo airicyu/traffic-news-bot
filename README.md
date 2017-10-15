@@ -46,15 +46,15 @@ Github: https://github.com/airicyu/traffic-news-bot
 
 Popup頁面:
 
-![Popup頁面](https://raw.githubusercontent.com/airicyu/traffic-news-bot/master/screenshot/screenshot1.png)
+![Popup頁面](https://raw.githubusercontent.com/airicyu/traffic-news-bot/master/chrome-extension/screenshot/screenshot1.png)
 
 設定頁面:
 
-![Popup頁面](https://raw.githubusercontent.com/airicyu/traffic-news-bot/master/screenshot/screenshot2.png)
+![Popup頁面](https://raw.githubusercontent.com/airicyu/traffic-news-bot/master/chrome-extension/screenshot/screenshot2.png)
 
 Push Notification頁面:
 
-![Push Notification頁面](https://raw.githubusercontent.com/airicyu/traffic-news-bot/master/screenshot/screenshot3.png)
+![Push Notification頁面](https://raw.githubusercontent.com/airicyu/traffic-news-bot/master/chrome-extension/screenshot/screenshot3.png)
 
 
 ------------------------
