@@ -363,7 +363,7 @@ async function clearOutdatedMessagesHash() {
             let todayDate = new Date().toLocaleDateString();
             for (var key in messageHashmap) {
                 if (key != todayDate) {
-                    delete messageHashmap.key;
+                    delete messageHashmap[key];
                 }
             }
             messageHashmap[todayDate] = messageHashmap[todayDate] || {};
