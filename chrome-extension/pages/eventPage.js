@@ -464,7 +464,7 @@ async function sendTrafficNewsNotification(items) {
             title: '最新交通消息',
             message: `有${items && items.length || 0}則更新消息`
         };
-        chrome.notifications.create(TRAFFIC_NEWS_BOT_NEWS_NOTIFICATION_ID, notifOptions, function (notificationId) {
+        chrome.notifications.create(TRAFFIC_NEWS_BOT_NEWS_NOTIFICATION_ID+'_'+Date.now(), notifOptions, function (notificationId) {
             resolve(notificationId);
         });
     });
