@@ -16,6 +16,18 @@ var debug = function () {
     });
 };
 
+var debugSetting = function () {
+	chrome.storage.sync.get(null, function (store) {
+		chrome.alarms.getAll(function (alarms) {
+			let ourAlarms = JSON.parse(JSON.stringify(alarms.filter(alarm => [TRAFFIC_NEWS_BOT_DAILY_SCHEDULE_JOB_NAME, TRAFFIC_NEWS_BOT_CLEAR_SCHEDULE_JOB_NAME, TRAFFIC_NEWS_BOT_SCHEDULE_JOB_NAME].includes(alarm.name))));
+			ourAlarms.forEach(function (alarm) {
+				alarm.scheduleTimeDateString = new Date(alarm.scheduledTime).toLocaleString();
+			});
+			debug({ store: store, alarms: ourAlarms });
+		})
+	});
+};
+
 init();
 
 
@@ -40,10 +52,11 @@ async function init() {
             'officeOffHour': officeOffHour,
             'officeOffMinute': officeOffMinute,
             'filterTags': filterTags
-        }, function () {
-            updateScheduleJob(officeOffHour, officeOffMinute);
+        }, async function () {
+            await updateScheduleJob(officeOffHour, officeOffMinute);
         });
     });
+	
 }
 
 /* #################################################### */
@@ -159,7 +172,7 @@ chrome.notifications.onClicked.addListener(function (notificationId) {
 
 /* #################################################### */
 /* Handling schedule job events */
-chrome.alarms.onAlarm.addListener(function (alarm) {
+chrome.alarms.onAlarm.addListener(async function (alarm) {
     if (alarm.name === TRAFFIC_NEWS_BOT_DAILY_SCHEDULE_JOB_NAME) {
         debug(TRAFFIC_NEWS_BOT_DAILY_SCHEDULE_JOB_NAME);
         dailyScheduleJob();
@@ -169,18 +182,25 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
         chrome.alarms.clear(TRAFFIC_NEWS_BOT_SCHEDULE_JOB_NAME);
 
     } else if (alarm.name === TRAFFIC_NEWS_BOT_SCHEDULE_JOB_NAME) {
-        debug(TRAFFIC_NEWS_BOT_SCHEDULE_JOB_NAME);
-        chrome.storage.sync.get('enableNotification', function (setting) {
-            if (setting.enableNotification) {
-                checkTrafficNews();
-            }
-        });
+		let { officeOffHour, officeOffMinute } = await getOfficeOffTime();
+		let isValidNotificationPeriod = isWithinNotificationPeriodChecking(officeOffHour, officeOffMinute);
+		
+		debug(`${TRAFFIC_NEWS_BOT_SCHEDULE_JOB_NAME} isValidNotificationPeriod: ${isValidNotificationPeriod}`);
+		if (isValidNotificationPeriod) {
+			chrome.storage.sync.get('enableNotification', function (setting) {
+				if (setting.enableNotification) {
+					checkTrafficNews();
+				}
+			});
+		} else {
+			updateScheduleJob(officeOffHour, officeOffMinute);
+		}
     }
 });
 
 async function dailyScheduleJob() {
     chrome.alarms.create(TRAFFIC_NEWS_BOT_SCHEDULE_JOB_NAME, {
-        when: moment().valueOf() + 1000,
+        when: moment().valueOf() + 5*1000,
         periodInMinutes: 5
     });
 
@@ -238,15 +258,20 @@ async function updateScheduleJob(officeOffHour, officeOffMinute) {
     });
 }
 
-/* Util methods for checking whether at the time when the extension just installed is at the time which is almost off work and need a one off schedule job trigger */
-function isNeedDoOneoffChecking(officeOffHour, officeOffMinute) {
-    let now = moment();
+/* Util methods for checking whether now is within the notification period */
+function isWithinNotificationPeriodChecking(officeOffHour, officeOffMinute) {
+	let now = moment();
     let nextOfficeOffTime = getNextOfficeOffTime(officeOffHour, officeOffMinute);
 
     if (isDateValidOfficeDay(now) && now.valueOf() > moment(nextOfficeOffTime.valueOf()).subtract(1, 'hour').valueOf() && now.valueOf() < nextOfficeOffTime.valueOf()) {
         return true;
     }
     return false;
+}
+
+/* Util methods for checking whether at the time when the extension just installed is at the time which is almost off work and need a one off schedule job trigger */
+function isNeedDoOneoffChecking(officeOffHour, officeOffMinute) {
+    return isWithinNotificationPeriodChecking(officeOffHour, officeOffMinute);
 }
 
 /* Util methods for getting next off work time for scheduling schedule job */
